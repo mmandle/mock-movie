@@ -1,0 +1,53 @@
+import React from 'react';
+import { NextPageContext } from 'next';
+import { getSession } from 'next-auth/react';
+
+import Navbar from '@/components/Navbar';
+import Billboard from '@/components/Billboard';
+import MovieList from '@/components/MovieList';
+import InfoModal from '@/components/InfoModal';
+import useMovieList from '@/hooks/useMovieList';
+import useFavorites from '@/hooks/useFavorites';
+import useInfoModalStore from '@/hooks/useInfoModalStore';
+import Footer from '@/components/Footer';
+
+export async function getServerSideProps(context: NextPageContext) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/auth',
+        permanent: false,
+      }
+    }
+  }
+
+  return {
+    props: {}
+  }
+}
+
+const Home = () => {
+  const { data: movies = [] } = useMovieList();
+  const { data: favorites = [] } = useFavorites();
+  const {isOpen, closeModal} = useInfoModalStore();
+
+  return (
+    <>
+      <InfoModal visible={isOpen} onClose={closeModal} />
+      <Navbar />
+      <Billboard />
+      <div className="pb-40">
+        <MovieList title="Recommended for you" data={movies} filterGenre='Recommended'/>
+        <MovieList title="My List" data={favorites} />
+        <MovieList title="Trending Now" data={movies} filterGenre='Trending'/>
+        <MovieList title="Action" data={movies} filterGenre='Action' />
+        <MovieList title="Comedy" data={movies} filterGenre='Comedy'/>
+      </div>
+      <Footer />
+    </>
+  )
+}
+
+export default Home;
